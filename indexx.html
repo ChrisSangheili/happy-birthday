@@ -1,0 +1,215 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>Para Esmeralda ✨</title>
+  <style>
+    :root{
+      --bg1:#12091f;
+      --bg2:#2c1848;
+      --bg3:#5c2b5e;
+      --text:#fff;
+      --soft:rgba(255,255,255,.72);
+      --glass:rgba(255,255,255,.12);
+      --border:rgba(255,255,255,.22);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;min-height:100%;font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","Segoe UI",Arial,sans-serif;color:var(--text);overflow:hidden;background:#12091f;}
+    body{
+      min-height:100svh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:26px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255,111,175,.42), transparent 30%),
+        radial-gradient(circle at 80% 15%, rgba(255,191,105,.25), transparent 32%),
+        radial-gradient(circle at 60% 85%, rgba(104,124,255,.32), transparent 35%),
+        linear-gradient(145deg,var(--bg1),var(--bg2) 50%,var(--bg3));
+    }
+    .orb{position:fixed;border-radius:50%;filter:blur(28px);opacity:.45;animation:float 8s ease-in-out infinite alternate;pointer-events:none}
+    .orb.one{width:170px;height:170px;background:#ff6fb1;left:-40px;top:18%}
+    .orb.two{width:140px;height:140px;background:#ffd166;right:-35px;top:10%;animation-delay:1.5s}
+    .orb.three{width:200px;height:200px;background:#7c83ff;right:10%;bottom:-70px;animation-delay:2.5s}
+    @keyframes float{to{transform:translate3d(18px,-22px,0) scale(1.08)}}
+
+    .screen{
+      position:absolute;inset:0;
+      display:flex;align-items:center;justify-content:center;
+      padding:26px;
+      transition:opacity .7s ease, transform .7s ease;
+    }
+    .hidden{opacity:0;pointer-events:none;transform:scale(.98)}
+    .card{
+      width:min(580px,100%);
+      min-height:430px;
+      border:1px solid var(--border);
+      background:var(--glass);
+      backdrop-filter:blur(22px);
+      -webkit-backdrop-filter:blur(22px);
+      border-radius:34px;
+      box-shadow:0 24px 70px rgba(0,0,0,.24);
+      padding:34px 28px;
+      text-align:center;
+      display:flex;flex-direction:column;align-items:center;justify-content:center;
+    }
+    .gift{
+      font-size:92px;
+      line-height:1;
+      cursor:pointer;
+      user-select:none;
+      animation:bob 2.2s ease-in-out infinite;
+      filter:drop-shadow(0 14px 28px rgba(0,0,0,.25));
+    }
+    @keyframes bob{50%{transform:translateY(-12px)}}
+    .gift.shake{animation:shake .45s ease-in-out}
+    @keyframes shake{
+      0%,100%{transform:translateX(0) rotate(0)}
+      20%{transform:translateX(-8px) rotate(-8deg)}
+      40%{transform:translateX(8px) rotate(8deg)}
+      60%{transform:translateX(-5px) rotate(-5deg)}
+      80%{transform:translateX(5px) rotate(5deg)}
+    }
+    h1{font-size:clamp(2.2rem,9vw,4.4rem);line-height:.95;margin:18px 0 14px;font-weight:750;letter-spacing:-.05em}
+    h2{font-size:clamp(1.7rem,7vw,3.3rem);line-height:1.02;margin:0 0 18px;font-weight:760;letter-spacing:-.04em}
+    p{font-size:clamp(1.05rem,4.4vw,1.55rem);line-height:1.48;margin:0;color:var(--soft)}
+    .small{font-size:clamp(.95rem,3.9vw,1.16rem);margin-top:18px;color:rgba(255,255,255,.55)}
+    button{
+      margin-top:26px;border:0;border-radius:999px;padding:15px 22px;
+      font-size:1rem;font-weight:700;color:#2b163b;background:#fff;
+      box-shadow:0 12px 30px rgba(0,0,0,.18);cursor:pointer;
+    }
+    .typing{min-height:145px}
+    .message{
+      display:none;
+      animation:rise .8s ease forwards;
+      max-width:520px;
+    }
+    @keyframes rise{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:none}}
+    .heart{font-size:38px;margin-top:18px;animation:pulse 1.5s ease-in-out infinite}
+    @keyframes pulse{50%{transform:scale(1.12)}}
+    .balloon{
+      position:fixed;bottom:-90px;font-size:42px;animation:balloonUp 7s ease-in forwards;z-index:1;pointer-events:none;
+    }
+    @keyframes balloonUp{to{transform:translateY(-115vh);opacity:.2}}
+    .confetti{
+      position:fixed;top:-15px;width:10px;height:14px;border-radius:3px;z-index:5;animation:fall linear forwards;pointer-events:none;
+    }
+    @keyframes fall{to{transform:translateY(115vh) rotate(720deg);opacity:.9}}
+    .cake{font-size:62px;margin:16px 0 8px;cursor:pointer;user-select:none}
+    .wish{display:none;margin-top:12px;font-size:clamp(1rem,4vw,1.25rem);color:rgba(255,255,255,.82)}
+    @media (max-width:430px){
+      .card{min-height:470px;padding:30px 23px;border-radius:30px}
+      .gift{font-size:84px}
+    }
+  </style>
+</head>
+<body>
+  <div class="orb one"></div><div class="orb two"></div><div class="orb three"></div>
+
+  <section id="intro" class="screen">
+    <div class="card">
+      <div id="gift" class="gift" role="button" aria-label="Abrir regalo">🎁</div>
+      <h1>Tengo algo para ti...</h1>
+      <p>Toca el regalo ✨</p>
+      <p class="small">Prometo que esta felicitación sí cuenta.</p>
+    </div>
+  </section>
+
+  <section id="main" class="screen hidden">
+    <div class="card">
+      <div id="cake" class="cake">🎂</div>
+      <h2 id="title" class="typing"></h2>
+      <div id="message" class="message">
+        <p>
+          Esmeralda, me alegra muchísimo haberte conocido y agradezco que la vida nos haya juntado en el mismo equipo.
+          Me gusta mucho ir al cine contigo, escucharte platicarme tu vida y compartir esos momentos que se sienten tan especiales.
+        </p>
+        <p class="small">
+          Ahora sí, oficialmente: ¡feliz cumpleaños! 🥳<br>
+          Espero que tengas un día muy bonito, lleno de risas, cosas buenas y algo rico para celebrar.
+        </p>
+        <button id="lastGift">Un último regalo ❤️</button>
+        <p id="wish" class="wish">Te espero aquí en París. Ojalá pronto podamos celebrar también por acá. ✨</p>
+        <div class="heart">🎈</div>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    const intro = document.getElementById("intro");
+    const main = document.getElementById("main");
+    const gift = document.getElementById("gift");
+    const title = document.getElementById("title");
+    const message = document.getElementById("message");
+    const lastGift = document.getElementById("lastGift");
+    const wish = document.getElementById("wish");
+    const cake = document.getElementById("cake");
+
+    function confetti(amount=150){
+      for(let i=0;i<amount;i++){
+        const c=document.createElement("div");
+        c.className="confetti";
+        c.style.left=Math.random()*100+"vw";
+        c.style.background=`hsl(${Math.random()*360},95%,65%)`;
+        c.style.animationDuration=(2.4+Math.random()*3.3)+"s";
+        c.style.animationDelay=(Math.random()*.5)+"s";
+        c.style.transform=`rotate(${Math.random()*360}deg)`;
+        document.body.appendChild(c);
+        setTimeout(()=>c.remove(),6200);
+      }
+    }
+    function balloons(amount=16){
+      const icons=["🎈","💜","✨","🎉"];
+      for(let i=0;i<amount;i++){
+        const b=document.createElement("div");
+        b.className="balloon";
+        b.textContent=icons[Math.floor(Math.random()*icons.length)];
+        b.style.left=(5+Math.random()*90)+"vw";
+        b.style.animationDuration=(5+Math.random()*4)+"s";
+        b.style.animationDelay=(Math.random()*2.2)+"s";
+        document.body.appendChild(b);
+        setTimeout(()=>b.remove(),9500);
+      }
+    }
+    function typeText(text, el, speed=62){
+      let i=0;
+      el.textContent="";
+      const timer=setInterval(()=>{
+        el.textContent += text.charAt(i);
+        i++;
+        if(i>=text.length){
+          clearInterval(timer);
+          setTimeout(()=>{ message.style.display="block"; }, 550);
+        }
+      }, speed);
+    }
+
+    gift.addEventListener("click", () => {
+      gift.classList.add("shake");
+      setTimeout(() => {
+        intro.classList.add("hidden");
+        main.classList.remove("hidden");
+        confetti();
+        balloons();
+        setTimeout(()=>typeText("Ahora sí... oficialmente: ¡Feliz cumpleaños, Esmeralda! 🎉", title, 58), 450);
+      }, 560);
+    });
+
+    lastGift.addEventListener("click", () => {
+      wish.style.display = "block";
+      lastGift.style.display = "none";
+      confetti(80);
+      balloons(8);
+    });
+
+    cake.addEventListener("click", () => {
+      cake.textContent = "🕯️";
+      confetti(45);
+      setTimeout(()=> cake.textContent = "🎂", 1800);
+    });
+  </script>
+</body>
+</html>
