@@ -3,12 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Liquid Text Demo</title>
+  <title>Liquid Text Demo — Mancha</title>
 
   <style>
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html,
     body {
@@ -45,6 +43,13 @@
       fill: #000;
       text-anchor: middle;
       dominant-baseline: middle;
+      opacity: 0;
+    }
+
+    #blob {
+      fill: #000;
+      transform-box: fill-box;
+      transform-origin: center;
     }
 
     @media (max-width: 700px) {
@@ -55,7 +60,9 @@
     }
 
     @media (prefers-reduced-motion: reduce) {
+      #blob { display: none; }
       #liquidText {
+        opacity: 1 !important;
         filter: none !important;
       }
     }
@@ -65,23 +72,50 @@
 <body>
   <main class="stage" aria-label="Demostración de texto líquido">
     <svg
-      viewBox="0 0 1000 360"
+      viewBox="0 0 1000 420"
       role="img"
       aria-label="Hola!"
       preserveAspectRatio="xMidYMid meet"
     >
       <defs>
+        <!-- Distorsión de la mancha -->
         <filter
-          id="liquid"
-          x="-35%"
-          y="-80%"
-          width="170%"
-          height="260%"
+          id="blobFilter"
+          x="-45%"
+          y="-120%"
+          width="190%"
+          height="340%"
           color-interpolation-filters="sRGB"
         >
-          <!-- Ruido que empuja la silueta -->
           <feTurbulence
-            id="noise"
+            id="blobNoise"
+            type="fractalNoise"
+            baseFrequency="0.010 0.022"
+            numOctaves="2"
+            seed="11"
+            result="noise"
+          />
+          <feDisplacementMap
+            id="blobDisplace"
+            in="SourceGraphic"
+            in2="noise"
+            scale="38"
+            xChannelSelector="R"
+            yChannelSelector="G"
+          />
+        </filter>
+
+        <!-- Distorsión del texto mientras emerge -->
+        <filter
+          id="textLiquid"
+          x="-35%"
+          y="-90%"
+          width="170%"
+          height="280%"
+          color-interpolation-filters="sRGB"
+        >
+          <feTurbulence
+            id="textNoise"
             type="fractalNoise"
             baseFrequency="0.012 0.025"
             numOctaves="2"
@@ -90,50 +124,56 @@
           />
 
           <feDisplacementMap
-            id="displace"
+            id="textDisplace"
             in="SourceGraphic"
             in2="noise"
-            scale="72"
+            scale="78"
             xChannelSelector="R"
             yChannelSelector="G"
             result="displaced"
           />
 
-          <!-- Engorda las letras para que se unan como una mancha -->
           <feMorphology
-            id="morph"
+            id="textMorph"
             in="displaced"
             operator="dilate"
-            radius="13"
+            radius="15"
             result="fat"
           />
 
-          <!-- Suaviza los bordes -->
           <feGaussianBlur
-            id="blur"
+            id="textBlur"
             in="fat"
             stdDeviation="9"
             result="soft"
           />
 
-          <!-- Recupera una silueta negra compacta -->
-          <feComponentTransfer in="soft" result="ink">
+          <feComponentTransfer in="soft">
             <feFuncA
-              id="threshold"
+              id="textThreshold"
               type="table"
-              tableValues="0 0 0 0 0.2 0.95 1 1"
+              tableValues="0 0 0 0 0.18 0.95 1 1"
             />
           </feComponentTransfer>
-
-          <feComposite in="ink" in2="SourceGraphic" operator="over" />
         </filter>
       </defs>
 
+      <!-- Mancha inicial -->
+      <ellipse
+        id="blob"
+        cx="500"
+        cy="210"
+        rx="4"
+        ry="4"
+        filter="url(#blobFilter)"
+      />
+
+      <!-- Texto final -->
       <text
         id="liquidText"
         x="500"
-        y="180"
-        filter="url(#liquid)"
+        y="210"
+        filter="url(#textLiquid)"
       >Hola!</text>
     </svg>
   </main>
@@ -143,54 +183,136 @@
       "(prefers-reduced-motion: reduce)"
     ).matches;
 
+    const blob = document.querySelector("#blob");
+    const blobDisplace = document.querySelector("#blobDisplace");
+    const blobNoise = document.querySelector("#blobNoise");
+
     const text = document.querySelector("#liquidText");
-    const displacement = document.querySelector("#displace");
-    const morphology = document.querySelector("#morph");
-    const blur = document.querySelector("#blur");
-    const turbulence = document.querySelector("#noise");
-    const threshold = document.querySelector("#threshold");
+    const textDisplace = document.querySelector("#textDisplace");
+    const textMorph = document.querySelector("#textMorph");
+    const textBlur = document.querySelector("#textBlur");
+    const textNoise = document.querySelector("#textNoise");
 
-    const WAIT_BEFORE_REVEAL = 2000;
-    const REVEAL_DURATION = 1500;
+    /*
+      Secuencia:
+      0.0s  punto
+      0.0–1.25s  el punto se derrama en una mancha
+      1.25–2.0s   la mancha "respira"
+      2.0–3.55s   la mancha se recoge y aparece "Hola!"
+    */
+    const GROW_DURATION = 1250;
+    const HOLD_DURATION = 750;
+    const REVEAL_DURATION = 1550;
 
-    const easeInOutCubic = (t) =>
+    const clamp01 = n => Math.max(0, Math.min(1, n));
+    const lerp = (a, b, t) => a + (b - a) * t;
+
+    const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
+    const easeInOutCubic = t =>
       t < 0.5
         ? 4 * t * t * t
         : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
-    function lerp(from, to, t) {
-      return from + (to - from) * t;
+    function setBlobShape(progress, time) {
+      const eased = easeOutQuart(progress);
+
+      // Crece mucho más en horizontal para parecer tinta derramada,
+      // pero mantiene volumen suficiente para no verse como una simple línea.
+      const rx = lerp(4, 245, eased);
+      const ry = lerp(4, 68, eased);
+
+      // Pequeña respiración orgánica.
+      const wobbleX = Math.sin(time * 0.0041) * 6 * eased;
+      const wobbleY = Math.cos(time * 0.0034) * 3 * eased;
+
+      blob.setAttribute("rx", Math.max(1, rx + wobbleX).toFixed(2));
+      blob.setAttribute("ry", Math.max(1, ry + wobbleY).toFixed(2));
+
+      // La irregularidad aumenta a medida que deja de ser punto.
+      blobDisplace.setAttribute(
+        "scale",
+        lerp(2, 42, eased).toFixed(2)
+      );
+
+      const fx = lerp(0.028, 0.0095, eased);
+      const fy = lerp(0.035, 0.020, eased);
+      blobNoise.setAttribute(
+        "baseFrequency",
+        `${fx.toFixed(4)} ${fy.toFixed(4)}`
+      );
     }
 
-    function revealText() {
+    function animateIntro() {
       const start = performance.now();
 
       function frame(now) {
-        const raw = Math.min((now - start) / REVEAL_DURATION, 1);
+        const elapsed = now - start;
+
+        if (elapsed <= GROW_DURATION) {
+          const p = clamp01(elapsed / GROW_DURATION);
+          setBlobShape(p, elapsed);
+          requestAnimationFrame(frame);
+          return;
+        }
+
+        if (elapsed <= GROW_DURATION + HOLD_DURATION) {
+          // Durante la pausa, la mancha sigue ligeramente viva.
+          setBlobShape(1, elapsed);
+          requestAnimationFrame(frame);
+          return;
+        }
+
+        const revealElapsed =
+          elapsed - GROW_DURATION - HOLD_DURATION;
+        const raw = clamp01(revealElapsed / REVEAL_DURATION);
         const t = easeInOutCubic(raw);
 
-        displacement.setAttribute("scale", lerp(72, 0, t).toFixed(2));
-        morphology.setAttribute("radius", lerp(13, 0, t).toFixed(2));
-        blur.setAttribute("stdDeviation", lerp(9, 0, t).toFixed(2));
+        // El texto entra antes de que desaparezca la mancha,
+        // evitando un corte perceptible entre ambos elementos.
+        const textOpacity = clamp01(raw / 0.22);
+        text.style.opacity = textOpacity.toFixed(3);
 
-        const fx = lerp(0.012, 0.035, t);
-        const fy = lerp(0.025, 0.055, t);
-        turbulence.setAttribute(
+        // La mancha se contrae hacia el centro y desaparece.
+        const blobFade = 1 - clamp01((raw - 0.08) / 0.52);
+        const shrink = 1 - 0.78 * easeInOutCubic(
+          clamp01(raw / 0.70)
+        );
+
+        blob.style.opacity = blobFade.toFixed(3);
+        blob.setAttribute("rx", (245 * shrink).toFixed(2));
+        blob.setAttribute("ry", (68 * shrink).toFixed(2));
+        blobDisplace.setAttribute(
+          "scale",
+          lerp(42, 8, t).toFixed(2)
+        );
+
+        // El texto deja de ser una masa gruesa y deformada
+        // y termina completamente nítido.
+        textDisplace.setAttribute(
+          "scale",
+          lerp(78, 0, t).toFixed(2)
+        );
+        textMorph.setAttribute(
+          "radius",
+          lerp(15, 0, t).toFixed(2)
+        );
+        textBlur.setAttribute(
+          "stdDeviation",
+          lerp(9, 0, t).toFixed(2)
+        );
+
+        const fx = lerp(0.012, 0.040, t);
+        const fy = lerp(0.025, 0.060, t);
+        textNoise.setAttribute(
           "baseFrequency",
           `${fx.toFixed(4)} ${fy.toFixed(4)}`
         );
 
-        if (raw < 0.72) {
-          const k = raw / 0.72;
-          threshold.setAttribute(
-            "tableValues",
-            `0 0 0 0 ${lerp(0.2, 0.05, k).toFixed(3)} 0.95 1 1`
-          );
-        }
-
         if (raw < 1) {
           requestAnimationFrame(frame);
         } else {
+          blob.style.display = "none";
+          text.style.opacity = "1";
           text.style.filter = "none";
         }
       }
@@ -198,14 +320,10 @@
       requestAnimationFrame(frame);
     }
 
-    if (reduceMotion) {
-      text.style.filter = "none";
-    } else {
+    if (!reduceMotion) {
       window.addEventListener(
         "load",
-        () => {
-          window.setTimeout(revealText, WAIT_BEFORE_REVEAL);
-        },
+        animateIntro,
         { once: true }
       );
     }
