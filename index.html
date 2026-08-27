@@ -94,7 +94,7 @@
       offCanvas.height = height;
 
       const fontSize = Math.min(width * 0.25, 200);
-      offCtx.font = `bold italic ${fontSize}px "Moirai One"`;
+      offCtx.font = `400 ${fontSize}px "Moirai One"`;
       offCtx.textAlign = 'center';
       offCtx.textBaseline = 'middle';
       offCtx.fillStyle = 'black';
@@ -141,8 +141,18 @@
       requestAnimationFrame(animate);
     }
 
+  async function start() {
+    // Esperar específicamente a Moirai One
+    await document.fonts.load('400 100px "Moirai One"');
+
+    // Esperar a que todas las fuentes pendientes estén listas
+    await document.fonts.ready;
+
     init();
     animate();
+  }
+
+  start();
   </script>
 </body>
 </html>
