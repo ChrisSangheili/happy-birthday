@@ -1,332 +1,148 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Liquid Text Demo — Mancha</title>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Moirai+One&display=swap" rel="stylesheet">
+  <title>Efecto Tinta - Hola</title>
   <style>
-    * { box-sizing: border-box; }
-
-    html,
-    body {
+    * {
       margin: 0;
-      width: 100%;
-      min-height: 100%;
-      background: #fff;
+      padding: 0;
+      box-sizing: border-box;
     }
-
-    body {
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
+    body, html {
+      width: 100%;
+      height: 100%;
       overflow: hidden;
-      font-family: Arial, Helvetica, sans-serif;
+      background-color: #f4ebd9; /* Fondo estilo papel antiguo */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-family: sans-serif;
     }
-
-    .stage {
-      width: min(92vw, 900px);
-      display: grid;
-      place-items: center;
-    }
-
-    svg {
-      width: 100%;
-      height: auto;
-      overflow: visible;
-    }
-
-    #liquidText {
-      font-size: 180px;
-      font-weight: 800;
-      letter-spacing: -8px;
-      fill: #000;
-      text-anchor: middle;
-      dominant-baseline: middle;
-      opacity: 0;
-    }
-
-    #blob {
-      fill: #000;
-      transform-box: fill-box;
-      transform-origin: center;
-    }
-
-    @media (max-width: 700px) {
-      #liquidText {
-        font-size: 120px;
-        letter-spacing: -5px;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      #blob { display: none; }
-      #liquidText {
-        opacity: 1 !important;
-        filter: none !important;
-      }
+    canvas {
+      display: block;
+      background: transparent;
     }
   </style>
 </head>
-
 <body>
-  <main class="stage" aria-label="Demostración de texto líquido">
-    <svg
-      viewBox="0 0 1000 420"
-      role="img"
-      aria-label="Hola!"
-      preserveAspectRatio="xMidYMid meet"
-    >
-      <defs>
-        <!-- Distorsión de la mancha -->
-        <filter
-          id="blobFilter"
-          x="-45%"
-          y="-120%"
-          width="190%"
-          height="340%"
-          color-interpolation-filters="sRGB"
-        >
-          <feTurbulence
-            id="blobNoise"
-            type="fractalNoise"
-            baseFrequency="0.010 0.022"
-            numOctaves="2"
-            seed="11"
-            result="noise"
-          />
-          <feDisplacementMap
-            id="blobDisplace"
-            in="SourceGraphic"
-            in2="noise"
-            scale="38"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
 
-        <!-- Distorsión del texto mientras emerge -->
-        <filter
-          id="textLiquid"
-          x="-35%"
-          y="-90%"
-          width="170%"
-          height="280%"
-          color-interpolation-filters="sRGB"
-        >
-          <feTurbulence
-            id="textNoise"
-            type="fractalNoise"
-            baseFrequency="0.012 0.025"
-            numOctaves="2"
-            seed="7"
-            result="noise"
-          />
-
-          <feDisplacementMap
-            id="textDisplace"
-            in="SourceGraphic"
-            in2="noise"
-            scale="78"
-            xChannelSelector="R"
-            yChannelSelector="G"
-            result="displaced"
-          />
-
-          <feMorphology
-            id="textMorph"
-            in="displaced"
-            operator="dilate"
-            radius="15"
-            result="fat"
-          />
-
-          <feGaussianBlur
-            id="textBlur"
-            in="fat"
-            stdDeviation="9"
-            result="soft"
-          />
-
-          <feComponentTransfer in="soft">
-            <feFuncA
-              id="textThreshold"
-              type="table"
-              tableValues="0 0 0 0 0.18 0.95 1 1"
-            />
-          </feComponentTransfer>
-        </filter>
-      </defs>
-
-      <!-- Mancha inicial -->
-      <ellipse
-        id="blob"
-        cx="500"
-        cy="210"
-        rx="4"
-        ry="4"
-        filter="url(#blobFilter)"
-      />
-
-      <!-- Texto final -->
-      <text
-        id="liquidText"
-        x="500"
-        y="210"
-        filter="url(#textLiquid)"
-      >Hola!</text>
-    </svg>
-  </main>
+  <canvas id="inkCanvas"></canvas>
 
   <script>
-    const reduceMotion = window.matchMedia(
-      "(prefers-reduced-motion: reduce)"
-    ).matches;
+    const canvas = document.getElementById('inkCanvas');
+    const ctx = canvas.getContext('2d');
 
-    const blob = document.querySelector("#blob");
-    const blobDisplace = document.querySelector("#blobDisplace");
-    const blobNoise = document.querySelector("#blobNoise");
+    let width = canvas.width = window.innerWidth;
+    let height = canvas.height = window.innerHeight;
 
-    const text = document.querySelector("#liquidText");
-    const textDisplace = document.querySelector("#textDisplace");
-    const textMorph = document.querySelector("#textMorph");
-    const textBlur = document.querySelector("#textBlur");
-    const textNoise = document.querySelector("#textNoise");
+    window.addEventListener('resize', () => {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+      init();
+    });
 
-    /*
-      Secuencia:
-      0.0s  punto
-      0.0–1.25s  el punto se derrama en una mancha
-      1.25–2.0s   la mancha "respira"
-      2.0–3.55s   la mancha se recoge y aparece "Hola!"
-    */
-    const GROW_DURATION = 1250;
-    const HOLD_DURATION = 750;
-    const REVEAL_DURATION = 1550;
+    const particles = [];
+    const particleCount = 2200;
+    let animationFrame;
 
-    const clamp01 = n => Math.max(0, Math.min(1, n));
-    const lerp = (a, b, t) => a + (b - a) * t;
+    class InkParticle {
+      constructor(targetX, targetY) {
+        // Posición inicial: Mancha derramada en el centro con dispersión aleatoria
+        const angle = Math.random() * Math.PI * 2;
+        const radius = Math.random() * 70 + Math.random() * 30;
+        this.x = width / 2 + Math.cos(angle) * radius;
+        this.y = height / 2 + Math.sin(angle) * radius;
 
-    const easeOutQuart = t => 1 - Math.pow(1 - t, 4);
-    const easeInOutCubic = t =>
-      t < 0.5
-        ? 4 * t * t * t
-        : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        // Posición final (donde se forma la letra)
+        this.targetX = targetX;
+        this.targetY = targetY;
 
-    function setBlobShape(progress, time) {
-      const eased = easeOutQuart(progress);
-
-      // Crece mucho más en horizontal para parecer tinta derramada,
-      // pero mantiene volumen suficiente para no verse como una simple línea.
-      const rx = lerp(4, 245, eased);
-      const ry = lerp(4, 68, eased);
-
-      // Pequeña respiración orgánica.
-      const wobbleX = Math.sin(time * 0.0041) * 6 * eased;
-      const wobbleY = Math.cos(time * 0.0034) * 3 * eased;
-
-      blob.setAttribute("rx", Math.max(1, rx + wobbleX).toFixed(2));
-      blob.setAttribute("ry", Math.max(1, ry + wobbleY).toFixed(2));
-
-      // La irregularidad aumenta a medida que deja de ser punto.
-      blobDisplace.setAttribute(
-        "scale",
-        lerp(2, 42, eased).toFixed(2)
-      );
-
-      const fx = lerp(0.028, 0.0095, eased);
-      const fy = lerp(0.035, 0.020, eased);
-      blobNoise.setAttribute(
-        "baseFrequency",
-        `${fx.toFixed(4)} ${fy.toFixed(4)}`
-      );
-    }
-
-    function animateIntro() {
-      const start = performance.now();
-
-      function frame(now) {
-        const elapsed = now - start;
-
-        if (elapsed <= GROW_DURATION) {
-          const p = clamp01(elapsed / GROW_DURATION);
-          setBlobShape(p, elapsed);
-          requestAnimationFrame(frame);
-          return;
-        }
-
-        if (elapsed <= GROW_DURATION + HOLD_DURATION) {
-          // Durante la pausa, la mancha sigue ligeramente viva.
-          setBlobShape(1, elapsed);
-          requestAnimationFrame(frame);
-          return;
-        }
-
-        const revealElapsed =
-          elapsed - GROW_DURATION - HOLD_DURATION;
-        const raw = clamp01(revealElapsed / REVEAL_DURATION);
-        const t = easeInOutCubic(raw);
-
-        // El texto entra antes de que desaparezca la mancha,
-        // evitando un corte perceptible entre ambos elementos.
-        const textOpacity = clamp01(raw / 0.22);
-        text.style.opacity = textOpacity.toFixed(3);
-
-        // La mancha se contrae hacia el centro y desaparece.
-        const blobFade = 1 - clamp01((raw - 0.08) / 0.52);
-        const shrink = 1 - 0.78 * easeInOutCubic(
-          clamp01(raw / 0.70)
-        );
-
-        blob.style.opacity = blobFade.toFixed(3);
-        blob.setAttribute("rx", (245 * shrink).toFixed(2));
-        blob.setAttribute("ry", (68 * shrink).toFixed(2));
-        blobDisplace.setAttribute(
-          "scale",
-          lerp(42, 8, t).toFixed(2)
-        );
-
-        // El texto deja de ser una masa gruesa y deformada
-        // y termina completamente nítido.
-        textDisplace.setAttribute(
-          "scale",
-          lerp(78, 0, t).toFixed(2)
-        );
-        textMorph.setAttribute(
-          "radius",
-          lerp(15, 0, t).toFixed(2)
-        );
-        textBlur.setAttribute(
-          "stdDeviation",
-          lerp(9, 0, t).toFixed(2)
-        );
-
-        const fx = lerp(0.012, 0.040, t);
-        const fy = lerp(0.025, 0.060, t);
-        textNoise.setAttribute(
-          "baseFrequency",
-          `${fx.toFixed(4)} ${fy.toFixed(4)}`
-        );
-
-        if (raw < 1) {
-          requestAnimationFrame(frame);
-        } else {
-          blob.style.display = "none";
-          text.style.opacity = "1";
-          text.style.filter = "none";
-        }
+        // Tamaño y fluidez
+        this.size = Math.random() * 3.5 + 1.5;
+        this.speed = Math.random() * 0.02 + 0.015; // Velocidad de atracción
+        this.wobble = Math.random() * 2;
       }
 
-      requestAnimationFrame(frame);
+      update() {
+        // Movimiento suave hacia el objetivo (interpolación lineal)
+        this.x += (this.targetX - this.x) * this.speed;
+        this.y += (this.targetY - this.y) * this.speed;
+
+        // Pequeño movimiento fluido imitando tinta
+        this.x += Math.sin(Date.now() * 0.003 + this.wobble) * 0.2;
+        this.y += Math.cos(Date.now() * 0.003 + this.wobble) * 0.2;
+      }
+
+      draw() {
+        ctx.fillStyle = '#111115'; // Color tinta oscura
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
 
-    if (!reduceMotion) {
-      window.addEventListener(
-        "load",
-        animateIntro,
-        { once: true }
-      );
+    function getTargetPoints() {
+      // Canvas auxiliar en memoria para extraer los píxeles de la palabra "Hola"
+      const offCanvas = document.createElement('canvas');
+      const offCtx = offCanvas.getContext('2d');
+      offCanvas.width = width;
+      offCanvas.height = height;
+
+      const fontSize = Math.min(width * 0.25, 200);
+      offCtx.font = `bold italic ${fontSize}px "Moirai One"`;
+      offCtx.textAlign = 'center';
+      offCtx.textBaseline = 'middle';
+      offCtx.fillStyle = 'black';
+      offCtx.fillText('Club Bruto', width / 2, height / 2);
+
+      const imgData = offCtx.getImageData(0, 0, width, height).data;
+      const points = [];
+
+      // Escanear píxeles dibujados
+      const step = 4;
+      for (let y = 0; y < height; y += step) {
+        for (let x = 0; x < width; x += step) {
+          const index = (y * width + x) * 4 + 3; // Canal Alpha
+          if (imgData[index] > 128) {
+            points.push({ x, y });
+          }
+        }
+      }
+      return points;
     }
+
+    function init() {
+      particles.length = 0;
+      const targetPoints = getTargetPoints();
+
+      if (targetPoints.length === 0) return;
+
+      for (let i = 0; i < particleCount; i++) {
+        // Asignar un punto de destino aleatorio dentro de las letras
+        const randomPoint = targetPoints[Math.floor(Math.random() * targetPoints.length)];
+        particles.push(new InkParticle(randomPoint.x, randomPoint.y));
+      }
+    }
+
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Dibujar partículas de tinta
+      for (let i = 0; i < particles.length; i++) {
+        particles[i].update();
+        particles[i].draw();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    init();
+    animate();
   </script>
 </body>
 </html>
