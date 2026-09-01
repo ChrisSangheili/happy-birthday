@@ -1,0 +1,1403 @@
+/* =====================================================
+   VARIABLES
+===================================================== */
+
+:root {
+
+  --paper: #f2eadb;
+
+  --paper-light:
+    #f8f3e9;
+
+  --ink:
+    #181714;
+
+  --ink-soft:
+    #2c2924;
+
+  --accent:
+    #a8422d;
+
+  --accent-dark:
+    #77301f;
+
+  --line:
+    rgba(24, 23, 20, 0.14);
+
+  --header-height:
+    104px;
+
+  --side-padding:
+    clamp(20px, 5vw, 52px);
+
+  --transition:
+    380ms cubic-bezier(.2, .8, .2, 1);
+
+}
+
+
+
+/* =====================================================
+   RESET
+===================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+
+html {
+  scroll-behavior: smooth;
+}
+
+
+body {
+
+  min-height: 100vh;
+  min-height: 100dvh;
+
+  background:
+    radial-gradient(
+      circle at 10% 20%,
+      rgba(168, 66, 45, 0.04),
+      transparent 34%
+    ),
+
+    radial-gradient(
+      circle at 86% 75%,
+      rgba(24, 23, 20, 0.04),
+      transparent 30%
+    ),
+
+    var(--paper);
+
+  color: var(--ink);
+
+  font-family:
+    "Inter",
+    system-ui,
+    sans-serif;
+
+  overflow-x: hidden;
+
+}
+
+
+
+/* ligera textura */
+
+body::before {
+
+  content: "";
+
+  position: fixed;
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: 0.14;
+
+  background-image:
+    repeating-radial-gradient(
+      circle at 0 0,
+      rgba(0, 0, 0, 0.05) 0,
+      rgba(0, 0, 0, 0.05) 0.5px,
+      transparent 0.7px,
+      transparent 5px
+    );
+
+  z-index: 50;
+
+}
+
+
+
+/* =====================================================
+   HEADER
+===================================================== */
+
+.site-header {
+
+  position: fixed;
+
+  z-index: 20;
+
+  top: 0;
+  left: 0;
+
+  width: 100%;
+
+  min-height: var(--header-height);
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  padding:
+
+    calc(
+      12px +
+      env(safe-area-inset-top)
+    )
+
+    var(--side-padding)
+
+    12px;
+
+}
+
+
+
+/* =====================================================
+   LOGO
+===================================================== */
+
+.brand {
+
+  display: flex;
+  align-items: center;
+
+  text-decoration: none;
+
+  min-width: 0;
+
+}
+
+
+.brand__logo {
+
+  /*
+    IMPORTANTE:
+
+    Aquí deliberadamente estamos dando
+    bastante espacio al logo porque
+    el detalle serigráfico necesita verse.
+  */
+
+  width:
+    clamp(
+      145px,
+      40vw,
+      215px
+    );
+
+  max-height: 78px;
+
+  object-fit: contain;
+
+  object-position: left center;
+
+  display: block;
+
+}
+
+
+
+/* =====================================================
+   BOTÓN TAZA
+===================================================== */
+
+.menu-button {
+
+  width: 58px;
+  height: 58px;
+
+  flex-shrink: 0;
+
+  border: 1px solid var(--line);
+
+  border-radius: 50%;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+
+  background:
+    rgba(248, 243, 233, 0.62);
+
+  backdrop-filter:
+    blur(8px);
+
+  color: var(--ink);
+
+  transition:
+    transform var(--transition),
+    background var(--transition),
+    color var(--transition);
+
+}
+
+
+.menu-button:hover {
+
+  background:
+    var(--ink);
+
+  color:
+    var(--paper);
+
+  transform:
+    rotate(-5deg);
+
+}
+
+
+.menu-button:active {
+
+  transform:
+    scale(0.94);
+
+}
+
+
+
+.cup-icon {
+
+  width: 31px;
+  height: 31px;
+
+  overflow: visible;
+
+}
+
+
+.cup-icon path {
+
+  fill: none;
+
+  stroke:
+    currentColor;
+
+  stroke-width:
+    2.8;
+
+  stroke-linecap:
+    round;
+
+  stroke-linejoin:
+    round;
+
+}
+
+
+
+.cup-steam {
+
+  transform-origin:
+    center bottom;
+
+  animation:
+    steam 2.3s ease-in-out infinite;
+
+}
+
+
+.cup-steam--2 {
+
+  animation-delay:
+    0.45s;
+
+}
+
+
+
+@keyframes steam {
+
+  0%,
+  100% {
+
+    opacity: 0.35;
+
+    transform:
+      translateY(2px);
+
+  }
+
+  50% {
+
+    opacity: 1;
+
+    transform:
+      translateY(-2px);
+
+  }
+
+}
+
+
+
+/* =====================================================
+   MENÚ LATERAL
+===================================================== */
+
+.menu-backdrop {
+
+  position: fixed;
+  inset: 0;
+
+  z-index: 30;
+
+  background:
+    rgba(10, 9, 8, 0.32);
+
+  backdrop-filter:
+    blur(3px);
+
+  opacity: 0;
+  visibility: hidden;
+
+  transition:
+    opacity var(--transition),
+    visibility var(--transition);
+
+}
+
+
+.menu-backdrop.is-open {
+
+  opacity: 1;
+  visibility: visible;
+
+}
+
+
+
+.site-menu {
+
+  position: fixed;
+
+  z-index: 40;
+
+  top: 0;
+  right: 0;
+
+  width:
+    min(
+      86vw,
+      390px
+    );
+
+  height:
+    100vh;
+
+  height:
+    100dvh;
+
+  padding:
+
+    calc(
+      28px +
+      env(safe-area-inset-top)
+    )
+
+    28px
+
+    calc(
+      28px +
+      env(safe-area-inset-bottom)
+    );
+
+  display: flex;
+
+  flex-direction: column;
+
+  background:
+    var(--ink);
+
+  color:
+    var(--paper);
+
+  transform:
+    translateX(105%);
+
+  transition:
+    transform
+    520ms
+    cubic-bezier(.16, .9, .24, 1);
+
+}
+
+
+
+.site-menu.is-open {
+
+  transform:
+    translateX(0);
+
+}
+
+
+
+.site-menu__top {
+
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+}
+
+
+.site-menu__label {
+
+  font-size: 0.74rem;
+
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+
+  opacity: 0.6;
+
+}
+
+
+.menu-close {
+
+  width: 45px;
+  height: 45px;
+
+  border: 1px solid
+    rgba(255, 255, 255, 0.18);
+
+  border-radius: 50%;
+
+  background:
+    transparent;
+
+  color:
+    var(--paper);
+
+  font-size:
+    2rem;
+
+  line-height: 1;
+
+  cursor: pointer;
+
+}
+
+
+
+.site-menu__links {
+
+  display: flex;
+
+  flex-direction: column;
+
+  margin-top: 13vh;
+
+}
+
+
+.site-menu__links a {
+
+  position: relative;
+
+  color:
+    var(--paper);
+
+  text-decoration: none;
+
+  font-size:
+    clamp(
+      1.7rem,
+      7vw,
+      2.7rem
+    );
+
+  font-weight: 500;
+
+  padding:
+    15px 0;
+
+  border-bottom:
+    1px solid
+    rgba(255, 255, 255, 0.12);
+
+  transition:
+    color 250ms ease,
+    padding-left 250ms ease;
+
+}
+
+
+
+.site-menu__links a:hover {
+
+  color:
+    #d46246;
+
+  padding-left:
+    9px;
+
+}
+
+
+
+.menu-number {
+
+  display:
+    inline-block;
+
+  width:
+    35px;
+
+  font-size:
+    0.65rem;
+
+  letter-spacing:
+    0.1em;
+
+  opacity:
+    0.45;
+
+}
+
+
+
+.site-menu__footer {
+
+  margin-top:
+    auto;
+
+  font-size:
+    0.72rem;
+
+  letter-spacing:
+    0.08em;
+
+  opacity:
+    0.42;
+
+}
+
+
+
+/* =====================================================
+   HERO
+===================================================== */
+
+.hero {
+
+  min-height:
+    100vh;
+
+  min-height:
+    100dvh;
+
+  position:
+    relative;
+
+  overflow:
+    hidden;
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  padding:
+
+    calc(
+      var(--header-height) +
+      40px
+    )
+
+    var(--side-padding)
+
+    145px;
+
+}
+
+
+
+.hero__content {
+
+  position:
+    relative;
+
+  z-index:
+    2;
+
+  max-width:
+    760px;
+
+}
+
+
+
+.hero__eyebrow {
+
+  margin-bottom:
+    20px;
+
+  font-size:
+    clamp(
+      0.68rem,
+      2.5vw,
+      0.82rem
+    );
+
+  font-weight:
+    600;
+
+  letter-spacing:
+    0.18em;
+
+  color:
+    var(--accent);
+
+}
+
+
+
+.hero__title {
+
+  font-size:
+    clamp(
+      3rem,
+      13vw,
+      7rem
+    );
+
+  font-weight:
+    600;
+
+  line-height:
+    0.9;
+
+  letter-spacing:
+    -0.065em;
+
+}
+
+
+
+.hero__title span {
+
+  color:
+    var(--accent);
+
+}
+
+
+
+.hero__description {
+
+  margin-top:
+    30px;
+
+  max-width:
+    410px;
+
+  color:
+    rgba(24, 23, 20, 0.61);
+
+  font-size:
+    clamp(
+      0.9rem,
+      3vw,
+      1.02rem
+    );
+
+  line-height:
+    1.55;
+
+}
+
+
+
+/* =====================================================
+   FORMAS / MANCHAS
+===================================================== */
+
+.ink-shape {
+
+  position:
+    absolute;
+
+  pointer-events:
+    none;
+
+  filter:
+    blur(0.2px);
+
+}
+
+
+
+.ink-shape--one {
+
+  width:
+    clamp(
+      220px,
+      60vw,
+      600px
+    );
+
+  aspect-ratio:
+    1;
+
+  right:
+    -25%;
+
+  bottom:
+    -15%;
+
+  background:
+    var(--accent);
+
+  opacity:
+    0.065;
+
+  border-radius:
+    43% 57% 39% 61%
+    / 57% 36% 64% 43%;
+
+  transform:
+    rotate(-18deg);
+
+}
+
+
+
+.ink-shape--two {
+
+  width:
+    130px;
+
+  aspect-ratio:
+    1;
+
+  left:
+    -70px;
+
+  top:
+    43%;
+
+  background:
+    var(--ink);
+
+  opacity:
+    0.035;
+
+  border-radius:
+    63% 37% 71% 29%
+    / 42% 54% 46% 58%;
+
+}
+
+
+
+/* =====================================================
+   FOOTER
+===================================================== */
+
+.site-footer {
+
+  position:
+    fixed;
+
+  z-index:
+    15;
+
+  left: 0;
+  bottom: 0;
+
+  width:
+    100%;
+
+  min-height:
+    92px;
+
+  padding:
+
+    15px
+
+    var(--side-padding)
+
+    calc(
+      15px +
+      env(safe-area-inset-bottom)
+    );
+
+  display:
+    grid;
+
+  grid-template-columns:
+    1fr auto;
+
+  align-items:
+    end;
+
+  gap:
+    20px;
+
+  opacity:
+    0;
+
+  transform:
+    translateY(30px);
+
+  pointer-events:
+    none;
+
+}
+
+
+
+/*
+   El footer se hace visible
+   DESPUÉS de que JS agrega
+   la clase is-visible.
+*/
+
+.site-footer.is-visible {
+
+  opacity:
+    1;
+
+  transform:
+    translateY(0);
+
+  pointer-events:
+    auto;
+
+  transition:
+
+    opacity
+    800ms ease,
+
+    transform
+    900ms
+    cubic-bezier(.2, .9, .2, 1);
+
+}
+
+
+
+/* =====================================================
+   REDES
+===================================================== */
+
+.footer-social {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  gap:
+    9px;
+
+  opacity:
+    0;
+
+  transform:
+    translateY(10px);
+
+}
+
+
+
+.site-footer.is-visible
+.footer-social {
+
+  animation:
+    socialEnter
+    700ms ease
+    1.45s forwards;
+
+}
+
+
+
+@keyframes socialEnter {
+
+  to {
+
+    opacity: 1;
+
+    transform:
+      translateY(0);
+
+  }
+
+}
+
+
+
+.social-link {
+
+  width: 43px;
+  height: 43px;
+
+  display: flex;
+
+  align-items:
+    center;
+  justify-content:
+    center;
+
+  border:
+    1px solid var(--line);
+
+  border-radius:
+    50%;
+
+  color:
+    var(--ink);
+
+  background:
+    rgba(248, 243, 233, 0.55);
+
+  backdrop-filter:
+    blur(8px);
+
+  transition:
+    transform 250ms ease,
+    background 250ms ease,
+    color 250ms ease;
+
+}
+
+
+
+.social-link:hover {
+
+  transform:
+    translateY(-4px)
+    rotate(-4deg);
+
+  background:
+    var(--accent);
+
+  color:
+    var(--paper);
+
+}
+
+
+
+.social-link svg {
+
+  width:
+    19px;
+
+  height:
+    19px;
+
+  fill:
+    none;
+
+  stroke:
+    currentColor;
+
+  stroke-width:
+    1.8;
+
+  stroke-linecap:
+    round;
+
+  stroke-linejoin:
+    round;
+
+}
+
+
+.social-dot {
+
+  fill:
+    currentColor;
+
+  stroke:
+    none;
+
+}
+
+
+
+/* =====================================================
+   SLOGAN
+===================================================== */
+
+.footer-slogan {
+
+  width:
+    clamp(
+      170px,
+      40vw,
+      270px
+    );
+
+  overflow:
+    visible;
+
+}
+
+
+.slogan-svg {
+
+  width:
+    100%;
+
+  height:
+    auto;
+
+  overflow:
+    visible;
+
+}
+
+
+  .social-link--sketch {
+    width: 43px;
+    height: 43px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    border: 1px solid var(--line);
+    border-radius: 50%;
+
+    background: rgba(248, 243, 233, 0.55);
+    backdrop-filter: blur(8px);
+
+    color: var(--ink);
+
+    transition:
+      transform 250ms ease,
+      background 250ms ease,
+      color 250ms ease,
+      border-color 250ms ease;
+  }
+
+  .social-link--sketch:nth-child(1) {
+    transform: rotate(-3deg);
+  }
+
+  .social-link--sketch:nth-child(2) {
+    transform: rotate(2deg);
+  }
+
+  .social-link--sketch:hover {
+    background: var(--accent);
+    color: var(--paper);
+    border-color: rgba(0,0,0,0.08);
+    transform: translateY(-3px) rotate(-2deg);
+  }
+
+  .social-icon-sketch {
+    width: 19px;
+    height: 19px;
+  }
+
+  .social-icon-sketch path {
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+
+.slogan-svg text {
+  font-family: "Dokdo", cursive;
+
+  font-weight: 400;
+
+  font-size: 42px;
+
+  letter-spacing: 0.5px;
+}
+
+
+
+/*
+   CONTORNO DEL TEXTO
+*/
+
+.slogan-stroke {
+
+  fill:
+    transparent;
+
+  stroke:
+    var(--ink);
+
+  stroke-width:
+    1.5;
+
+  stroke-linejoin:
+    round;
+
+  stroke-dasharray:
+    1000;
+
+  stroke-dashoffset:
+    1000;
+
+}
+
+
+
+/*
+   RELLENO
+*/
+
+.slogan-fill {
+
+  fill:
+    var(--ink);
+
+  opacity:
+    0;
+
+}
+
+
+
+/*
+   Línea manuscrita debajo
+*/
+
+.slogan-line {
+
+  fill:
+    none;
+
+  stroke:
+    var(--accent);
+
+  stroke-width:
+    3;
+
+  stroke-linecap:
+    round;
+
+  stroke-dasharray:
+    230;
+
+  stroke-dashoffset:
+    230;
+
+}
+
+
+
+/* animación cuando aparece footer */
+
+.site-footer.is-visible
+.slogan-stroke {
+
+  animation:
+    writeSlogan
+    2.2s
+    cubic-bezier(.5, .05, .3, 1)
+    forwards;
+
+}
+
+
+.site-footer.is-visible
+.slogan-fill {
+  fill: var(--ink);
+
+  opacity: 0;
+
+  filter: blur(2px);
+
+  transform:
+    translateY(3px);
+
+  transform-origin:
+    center;
+}
+
+
+.site-footer.is-visible
+.slogan-fill {
+
+  animation:
+    inkReveal
+    1.15s
+    cubic-bezier(.2, .8, .2, 1)
+    forwards;
+
+}
+
+
+@keyframes inkReveal {
+
+  0% {
+
+    opacity: 0;
+
+    filter:
+      blur(3px);
+
+    transform:
+      translateY(4px)
+      scaleY(0.95);
+
+  }
+
+  55% {
+
+    opacity: 0.72;
+
+  }
+
+  100% {
+
+    opacity: 1;
+
+    filter:
+      blur(0);
+
+    transform:
+      translateY(0)
+      scaleY(1);
+
+  }
+
+}
+
+
+/* =====================================================
+   TABLET / DESKTOP
+===================================================== */
+
+@media (min-width: 768px) {
+
+  :root {
+    --header-height:
+      120px;
+  }
+
+
+  .site-header {
+
+    padding-top:
+      24px;
+
+  }
+
+
+  .hero {
+
+    padding-bottom:
+      150px;
+
+  }
+
+
+  .hero__content {
+
+    margin-left:
+      3vw;
+
+  }
+
+
+  .site-footer {
+
+    min-height:
+      105px;
+
+  }
+
+
+  .social-link {
+
+    width:
+      48px;
+
+    height:
+      48px;
+
+  }
+
+}
+
+
+
+/* =====================================================
+   TELÉFONOS MUY PEQUEÑOS
+===================================================== */
+
+@media (max-width: 380px) {
+
+  .brand__logo {
+
+    width:
+      135px;
+
+  }
+
+
+  .menu-button {
+
+    width:
+      52px;
+
+    height:
+      52px;
+
+  }
+
+
+  .footer-slogan {
+
+    width:
+      165px;
+
+  }
+
+
+  .social-link {
+
+    width:
+      39px;
+
+    height:
+      39px;
+
+  }
+
+}
+
+
+
+/* =====================================================
+   REDUCED MOTION
+===================================================== */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  * {
+
+    animation-duration:
+      0.01ms !important;
+
+    animation-iteration-count:
+      1 !important;
+
+    scroll-behavior:
+      auto !important;
+
+  }
+
+}
